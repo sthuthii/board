@@ -80,6 +80,7 @@ def create_app():
     @jwt_required()
     def create_board():
         """Create a new collaborative board."""
+            # Explicitly cast the user_id to an integer
         user_id = int(get_jwt_identity())
         data = request.get_json()
         name = data.get('name')
@@ -87,19 +88,13 @@ def create_app():
         if not name:
             return jsonify({"msg": "Board name is required"}), 400
 
-    # 1. Create the new board and add it to the session
         new_board = Board(name=name, owner_id=user_id)
         db.session.add(new_board)
-    
-    # 2. Flush the session to get the new board's ID
-    # This assigns an ID to the new_board object without committing the transaction
         db.session.flush()
 
-    # 3. Use the newly assigned ID to create the board member entry
         board_member = BoardMember(board_id=new_board.id, user_id=user_id, role='owner')
         db.session.add(board_member)
     
-    # 4. Commit all changes at once
         db.session.commit()
 
         return jsonify({

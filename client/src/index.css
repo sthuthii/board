@@ -66,3 +66,18 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+
+/* Add this to the end of your src/index.css file */
+.whiteboard-toolbar button {
+    padding: 8px 12px;
+    margin: 4px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    background-color: #f0f0f0;
+}
+
+.whiteboard-toolbar button.active-tool {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
