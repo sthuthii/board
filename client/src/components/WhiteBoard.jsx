@@ -46,21 +46,23 @@ const Whiteboard = ({ authToken }) => {
     };
 
     const loadWhiteboardState = async () => {
-        try {
-            const response = await axios.get(`${API_URL}/boards/${boardId}`, {
-                headers: { Authorization: `Bearer ${authToken}` }
+    try {
+        const response = await axios.get(`${API_URL}/boards/${boardId}`, {
+            headers: { Authorization: `Bearer ${authToken}` }
+        });
+        const boardData = response.data.whiteboard_data;
+
+        // Add this check to prevent errors with null data
+        if (boardData && boardData.length > 0) {
+            fabricCanvasRef.current.loadFromJSON(boardData, () => {
+                fabricCanvasRef.current.renderAll();
             });
-            const boardData = response.data.whiteboard_data;
-            if (boardData) {
-                fabricCanvasRef.current.loadFromJSON(boardData, () => {
-                    fabricCanvasRef.current.renderAll();
-                });
-            }
-        } catch (error) {
-            setMessage('Failed to load whiteboard.');
-            console.error('Error loading whiteboard:', error);
         }
-    };
+    } catch (error) {
+        setMessage('Failed1 to load whiteboard.');
+        console.error('Error loading whiteboard:', error);
+    }
+};
 
     const saveWhiteboardState = async () => {
         try {
