@@ -1,9 +1,8 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import * as fabric from 'fabric';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import * as fabric from 'fabric';
-
 
 const API_URL = 'http://127.0.0.1:5000/api';
 const SOCKET_URL = 'http://127.0.0.1:5000';
@@ -14,56 +13,10 @@ const Whiteboard = ({ authToken }) => {
     const fabricCanvasRef = useRef(null);
     const socketRef = useRef(null);
     const [message, setMessage] = useState('');
-    const [drawingMode, setDrawingMode] = useState('Pencil'); // This variable will now be used
+    const [drawingMode, setDrawingMode] = useState('Pencil');
 
-    useEffect(() => {
-        // Initialize Fabric.js canvas
-        const canvas = new fabric.Canvas(canvasRef.current);
-        fabricCanvasRef.current = canvas;
-
-        // Load saved data and connect to WebSockets
-        loadWhiteboardState();
-        setupSocketConnection();
-
-        // Event listeners for real-time updates
-        canvas.on('object:modified', syncChanges);
-        canvas.on('object:added', syncChanges);
-
-        // Cleanup function
-        return () => {
-            if (socketRef.current) {
-                socketRef.current.disconnect();
-            }
-            if (fabricCanvasRef.current) {
-                fabricCanvasRef.current.dispose();
-            }
-        };
-    }, [loadWhiteboardState, setupSocketConnection, boardId, authToken]);
-
-    const setupSocketConnection = useCallback(()=> {
-        socketRef.current = io(SOCKET_URL, {
-            auth: { token: authToken }
-        });
-
-        socketRef.current.on('connect', () => {
-            console.log('Connected to WebSocket!');
-            socketRef.current.emit('join', { board_id: parseInt(boardId) });
-        });
-
-        // Listen for real-time updates from other clients
-        socketRef.current.on('whiteboard_update', (data) => {
-            const canvas = fabricCanvasRef.current;
-            canvas.loadFromJSON(data.canvasState, () => {
-                canvas.renderAll();
-            });
-        });
-
-        socketRef.current.on('disconnect', () => {
-            console.log('Disconnected from WebSocket.');
-        });
-    },[boardId, authToken, syncChanges]);
-
-    const syncChanges = useCallback(() =>  {
+    // All function definitions are here, before they are called
+    const syncChanges = () => {
         if (!socketRef.current) return;
         const canvas = fabricCanvasRef.current;
         const canvasState = JSON.stringify(canvas.toJSON());
@@ -71,9 +24,28 @@ const Whiteboard = ({ authToken }) => {
             board_id: parseInt(boardId),
             update_data: { canvasState }
         });
-    },[authToken, boardId]);
+    };
 
-    const loadWhiteboardState = useCallback(async () =>{
+    const setupSocketConnection = () => {
+        socketRef.current = io(SOCKET_URL, {
+            auth: { token: authToken }
+        });
+        socketRef.current.on('connect', () => {
+            console.log('Connected to WebSocket!');
+            socketRef.current.emit('join', { board_id: parseInt(boardId) });
+        });
+        socketRef.current.on('whiteboard_update', (data) => {
+            const canvas = fabricCanvasRef.current;
+            canvas.loadFromJSON(data.canvasState, () => {
+                canvas.renderAll();
+            });
+        });
+        socketRef.current.on('disconnect', () => {
+            console.log('Disconnected from WebSocket.');
+        });
+    };
+
+    const loadWhiteboardState = async () => {
         try {
             const response = await axios.get(`${API_URL}/boards/${boardId}`, {
                 headers: { Authorization: `Bearer ${authToken}` }
@@ -88,7 +60,7 @@ const Whiteboard = ({ authToken }) => {
             setMessage('Failed to load whiteboard.');
             console.error('Error loading whiteboard:', error);
         }
-    },[authToken, boardId]);
+    };
 
     const saveWhiteboardState = async () => {
         try {
@@ -133,19 +105,35 @@ const Whiteboard = ({ authToken }) => {
         }
     };
 
+    // The useEffect hook now calls the functions that are already defined
+    useEffect(() => {
+        const canvas = new fabric.Canvas(canvasRef.current);
+        fabricCanvasRef.current = canvas;
+
+        loadWhiteboardState();
+        setupSocketConnection();
+
+        canvas.on('object:modified', syncChanges);
+        canvas.on('object:added', syncChanges);
+
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+            if (fabricCanvasRef.current) {
+                fabricCanvasRef.current.dispose();
+            }
+        };
+    }, [boardId]);
+
+    // ... (your existing JSX code) ...
     return (
         <div className="whiteboard-container">
             <div className="whiteboard-toolbar">
-                <button
-                    onClick={() => toggleDrawingMode('Pencil')}
-                    className={drawingMode === 'Pencil' ? 'active-tool' : ''}
-                >
+                <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>
                     Pen
                 </button>
-                <button
-                    onClick={addStickyNote}
-                    className={drawingMode === 'StickyNote' ? 'active-tool' : ''}
-                >
+                <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>
                     Sticky Note
                 </button>
                 <button onClick={saveWhiteboardState}>Save</button>
