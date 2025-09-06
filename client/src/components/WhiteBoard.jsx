@@ -80,15 +80,23 @@ const Whiteboard = ({ authToken }) => {
     };
 
     const toggleDrawingMode = (mode) => {
-        const canvas = fabricCanvasRef.current;
-        if (mode === 'Pencil') {
-            canvas.isDrawingMode = true;
+    const canvas = fabricCanvasRef.current;
+    
+    if (!canvas) {
+        return;
+    }
+    
+    if (mode === 'Pencil') {
+        canvas.isDrawingMode = true;
+        // Add a check to ensure freeDrawingBrush exists before setting properties
+        if (canvas.freeDrawingBrush) {
             canvas.freeDrawingBrush.width = 5;
-        } else {
-            canvas.isDrawingMode = false;
         }
-        setDrawingMode(mode);
-    };
+    } else {
+        canvas.isDrawingMode = false;
+    }
+    setDrawingMode(mode);
+};
 
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
