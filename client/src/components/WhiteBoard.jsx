@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import * as fabric from 'fabric';
 import axios from 'axios';
@@ -15,8 +15,8 @@ const Whiteboard = ({ authToken }) => {
     const [message, setMessage] = useState('');
     const [drawingMode, setDrawingMode] = useState(null);
 
-    // All function definitions are here, before they are called
-    const syncChanges = () => {
+    // Use useCallback to stabilize the functions
+    const syncChanges = useCallback(() => {
         if (!socketRef.current) return;
         const canvas = fabricCanvasRef.current;
         const canvasState = JSON.stringify(canvas.toJSON());
@@ -24,9 +24,9 @@ const Whiteboard = ({ authToken }) => {
             board_id: parseInt(boardId),
             update_data: { canvasState }
         });
-    };
+    }, [boardId]);
 
-    const setupSocketConnection = () => {
+    const setupSocketConnection = useCallback(() => {
         socketRef.current = io(SOCKET_URL, {
             auth: { token: authToken }
         });
@@ -43,25 +43,25 @@ const Whiteboard = ({ authToken }) => {
         socketRef.current.on('disconnect', () => {
             console.log('Disconnected from WebSocket.');
         });
-    };
+    }, [boardId, authToken]);
 
-    const loadWhiteboardState = async () => {
-    try {
-        const response = await axios.get(`${API_URL}/boards/${boardId}`, {
-            headers: { Authorization: `Bearer ${authToken}` }
-        });
-        const boardData = response.data.whiteboard_data;
-
-        if (boardData && boardData.length > 0) {
-            fabricCanvasRef.current.loadFromJSON(boardData, () => {
-                fabricCanvasRef.current.renderAll();
+    const loadWhiteboardState = useCallback(async () => {
+        try {
+            const response = await axios.get(`${API_URL}/boards/${boardId}`, {
+                headers: { Authorization: `Bearer ${authToken}` }
             });
+            const boardData = response.data.whiteboard_data;
+
+            if (boardData && boardData.length > 0) {
+                fabricCanvasRef.current.loadFromJSON(boardData, () => {
+                    fabricCanvasRef.current.renderAll();
+                });
+            }
+        } catch (error) {
+            setMessage('Failed to load whiteboard.');
+            console.error('Error loading whiteboard:', error);
         }
-    } catch (error) {
-        setMessage('Failed1 to load whiteboard.');
-        console.error('Error loading whiteboard:', error);
-    }
-    };
+    }, [boardId, authToken]);
 
     const saveWhiteboardState = async () => {
         try {
@@ -103,7 +103,6 @@ const Whiteboard = ({ authToken }) => {
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
         if (text) {
-            toggleDrawingMode('StickyNote');
             const note = new fabric.IText(text, {
                 left: 100,
                 top: 100,
@@ -116,6 +115,7 @@ const Whiteboard = ({ authToken }) => {
         }
     };
 
+    // The useEffect hook now has stable function references
     useEffect(() => {
         const canvas = new fabric.Canvas(canvasRef.current);
         fabricCanvasRef.current = canvas;
@@ -134,7 +134,7 @@ const Whiteboard = ({ authToken }) => {
                 fabricCanvasRef.current.dispose();
             }
         };
-    }, [boardId]);
+    }, [boardId, loadWhiteboardState, setupSocketConnection, syncChanges]);
 
     return (
         <div className="whiteboard-container">
@@ -158,5 +158,5 @@ const Whiteboard = ({ authToken }) => {
         </div>
     );
 };
-    
+
 export default Whiteboard;
