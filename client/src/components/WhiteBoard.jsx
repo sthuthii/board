@@ -13,7 +13,7 @@ const Whiteboard = ({ authToken }) => {
     const fabricCanvasRef = useRef(null);
     const socketRef = useRef(null);
     const [message, setMessage] = useState('');
-    const [drawingMode, setDrawingMode] = useState('Pencil');
+    const [drawingMode, setDrawingMode] = useState(null);
 
     // All function definitions are here, before they are called
     const syncChanges = () => {
@@ -52,7 +52,6 @@ const Whiteboard = ({ authToken }) => {
         });
         const boardData = response.data.whiteboard_data;
 
-        // Add this check to prevent errors with null data
         if (boardData && boardData.length > 0) {
             fabricCanvasRef.current.loadFromJSON(boardData, () => {
                 fabricCanvasRef.current.renderAll();
@@ -62,7 +61,7 @@ const Whiteboard = ({ authToken }) => {
         setMessage('Failed1 to load whiteboard.');
         console.error('Error loading whiteboard:', error);
     }
-};
+    };
 
     const saveWhiteboardState = async () => {
         try {
@@ -82,27 +81,29 @@ const Whiteboard = ({ authToken }) => {
     };
 
     const toggleDrawingMode = (mode) => {
-    const canvas = fabricCanvasRef.current;
-    
-    if (!canvas) {
-        return;
-    }
-    
-    if (mode === 'Pencil') {
-        canvas.isDrawingMode = true;
-        // Add a check to ensure freeDrawingBrush exists before setting properties
-        if (canvas.freeDrawingBrush) {
-            canvas.freeDrawingBrush.width = 5;
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) {
+            return;
         }
-    } else {
-        canvas.isDrawingMode = false;
-    }
-    setDrawingMode(mode);
-};
+
+        const newMode = drawingMode === mode ? null : mode;
+        setDrawingMode(newMode);
+
+        if (newMode === 'Pencil') {
+            canvas.isDrawingMode = true;
+            if (canvas.freeDrawingBrush) {
+                canvas.freeDrawingBrush.color = '#892323ff';
+                canvas.freeDrawingBrush.width = 10;
+            }
+        } else {
+            canvas.isDrawingMode = false;
+        }
+    };
 
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
         if (text) {
+            toggleDrawingMode('StickyNote');
             const note = new fabric.IText(text, {
                 left: 100,
                 top: 100,
@@ -115,7 +116,6 @@ const Whiteboard = ({ authToken }) => {
         }
     };
 
-    // The useEffect hook now calls the functions that are already defined
     useEffect(() => {
         const canvas = new fabric.Canvas(canvasRef.current);
         fabricCanvasRef.current = canvas;
@@ -136,14 +136,19 @@ const Whiteboard = ({ authToken }) => {
         };
     }, [boardId]);
 
-    // ... (your existing JSX code) ...
     return (
         <div className="whiteboard-container">
             <div className="whiteboard-toolbar">
-                <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>
+                <button
+                    onClick={() => toggleDrawingMode('Pencil')}
+                    className={drawingMode === 'Pencil' ? 'active-tool' : ''}
+                >
                     Pen
                 </button>
-                <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>
+                <button
+                    onClick={addStickyNote}
+                    className={drawingMode === 'StickyNote' ? 'active-tool' : ''}
+                >
                     Sticky Note
                 </button>
                 <button onClick={saveWhiteboardState}>Save</button>
@@ -153,5 +158,5 @@ const Whiteboard = ({ authToken }) => {
         </div>
     );
 };
-
+    
 export default Whiteboard;
