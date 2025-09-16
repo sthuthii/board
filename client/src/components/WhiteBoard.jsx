@@ -80,25 +80,26 @@ const Whiteboard = ({ authToken }) => {
         }
     };
 
-    const toggleDrawingMode = (mode) => {
-        const canvas = fabricCanvasRef.current;
-        if (!canvas) {
-            return;
-        }
+    // Corrected toggleDrawingMode function
+const toggleDrawingMode = (mode) => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) {
+        return;
+    }
 
-        const newMode = drawingMode === mode ? null : mode;
-        setDrawingMode(newMode);
+    const newMode = drawingMode === mode ? null : mode;
+    setDrawingMode(newMode);
 
-        if (newMode === 'Pencil') {
-            canvas.isDrawingMode = true;
-            if (canvas.freeDrawingBrush) {
-                canvas.freeDrawingBrush.color = '#892323ff';
-                canvas.freeDrawingBrush.width = 10;
-            }
-        } else {
-            canvas.isDrawingMode = false;
-        }
-    };
+    if (newMode === 'Pencil') {
+        canvas.isDrawingMode = true;
+        // Explicitly set the freeDrawingBrush to a PencilBrush instance
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        canvas.freeDrawingBrush.width = 10;
+        canvas.freeDrawingBrush.color = '#892323';
+    } else {
+        canvas.isDrawingMode = false;
+    }
+};
 
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
