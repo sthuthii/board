@@ -3,6 +3,8 @@ import { useParams } from 'react-router-dom';
 import * as fabric from 'fabric';
 import axios from 'axios';
 import { io } from 'socket.io-client';
+import './Whiteboard.css';
+import Chat from './Chat';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 const SOCKET_URL = 'http://127.0.0.1:5000';
@@ -81,6 +83,7 @@ const Whiteboard = ({ authToken }) => {
     };
 
     // Corrected toggleDrawingMode function
+// In Whiteboard.jsx
 const toggleDrawingMode = (mode) => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) {
@@ -92,15 +95,30 @@ const toggleDrawingMode = (mode) => {
 
     if (newMode === 'Pencil') {
         canvas.isDrawingMode = true;
-        // Explicitly set the freeDrawingBrush to a PencilBrush instance
         canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
         canvas.freeDrawingBrush.width = 10;
         canvas.freeDrawingBrush.color = '#892323';
+    } else if (newMode === 'Eraser') {
+        canvas.isDrawingMode = true;
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        // Set a transparent color for the brush
+        canvas.freeDrawingBrush.color = 'rgba(0,0,0,1)';
+        canvas.freeDrawingBrush.width = 20;
+        // This is the key line that makes the eraser work
+        canvas.globalCompositeOperation = 'destination-out';
     } else {
         canvas.isDrawingMode = false;
+        // Reset the composite operation when done erasing
+        canvas.globalCompositeOperation = 'source-over';
     }
 };
 
+const clearCanvas = () => {
+    if (fabricCanvasRef.current) {
+        fabricCanvasRef.current.clear();
+        syncChanges(); // Sync the empty canvas
+    }
+};
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
         if (text) {
@@ -137,27 +155,47 @@ const toggleDrawingMode = (mode) => {
         };
     }, [boardId, loadWhiteboardState, setupSocketConnection, syncChanges]);
 
-    return (
+    // Inside the Whiteboard component, alongside your other functions
+const deleteSelectedObjects = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    // Get the currently active object or group of objects
+    const activeObject = canvas.getActiveObjects();
+
+    if (activeObject) {
+        // Remove each selected object
+        activeObject.forEach(object => {
+            canvas.remove(object);
+        });
+
+        // Clear the selection
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        
+        // Sync the changes with other users
+        syncChanges();
+    }
+};
+
+   return (
+    <div className="whiteboard-page-container">
         <div className="whiteboard-container">
             <div className="whiteboard-toolbar">
-                <button
-                    onClick={() => toggleDrawingMode('Pencil')}
-                    className={drawingMode === 'Pencil' ? 'active-tool' : ''}
-                >
-                    Pen
-                </button>
-                <button
-                    onClick={addStickyNote}
-                    className={drawingMode === 'StickyNote' ? 'active-tool' : ''}
-                >
-                    Sticky Note
-                </button>
+                <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>Pen</button>
+                <button onClick={() => toggleDrawingMode('Eraser')} className={drawingMode === 'Eraser' ? 'active-tool' : ''}>Eraser</button>
+                <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>Sticky Note</button>
                 <button onClick={saveWhiteboardState}>Save</button>
+                <button onClick={clearCanvas}>Clear All</button>
+                <button onClick={deleteSelectedObjects}>Delete</button>
             </div>
             <canvas ref={canvasRef} id="main-whiteboard" width="1000" height="600" />
             <p className="message">{message}</p>
         </div>
-    );
+        {/* The new Chat component */}
+        <Chat boardId={boardId} authToken={authToken} />
+    </div>
+);
 };
 
 export default Whiteboard;

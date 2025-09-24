@@ -1,0 +1,102 @@
+/* Container for the entire page, enabling flexbox layout */
+.whiteboard-page-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* Styles for the whiteboard section */
+.whiteboard-container {
+  flex-grow: 1; /* Allows the whiteboard to take up all available space */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  font-family: sans-serif;
+  background-color: #000000;
+}
+
+/* Styles for the toolbar */
+.whiteboard-toolbar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 10px;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.whiteboard-toolbar button {
+  padding: 10px 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #333;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.whiteboard-toolbar button:hover {
+  background-color: #f0f0f0;
+}
+
+.whiteboard-toolbar button.active-tool {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3);
+}
+
+/* Styles for the canvas */
+canvas {
+  border: 2px solid #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  color: rgb(255, 255, 255);
+}
+
+/* Styles for the chat container */
+.chat-container {
+  width: 300px; /* Fixed width for the chat sidebar */
+  background-color: #fff;
+  border-left: 1px solid #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.chat-messages {
+  flex-grow: 1;
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.chat-message {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+}
+
+.chat-input-form {
+  display: flex;
+  gap: 10px;
+}
+
+.chat-input-form input {
+  flex-grow: 1;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.chat-input-form button {
+  padding: 8px 12px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
