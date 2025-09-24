@@ -8,37 +8,35 @@ const Chat = ({ boardId, authToken }) => {
     const [inputMessage, setInputMessage] = useState('');
     const socketRef = useRef(null);
 
-    // In Chat.jsx
-useEffect(() => {
-    // Connect to the WebSocket server
-    socketRef.current = io(SOCKET_URL, {
-        auth: { token: authToken }
-    });
+    useEffect(() => {
+        // Connect to the WebSocket server
+        socketRef.current = io(SOCKET_URL, {
+            auth: { token: authToken }
+        });
 
-    // Event handler for a successful connection
-    socketRef.current.on('connect', () => {
-        console.log('Chat socket connected!');
-        socketRef.current.emit('join', { board_id: parseInt(boardId) });
-    });
+        // Event handler for a successful connection
+        socketRef.current.on('connect', () => {
+            console.log('Chat socket connected!');
+            socketRef.current.emit('join', { board_id: parseInt(boardId) });
+        });
 
-    // Event handler for receiving new chat messages
-    socketRef.current.on('chat_message', (data) => {
-        console.log("Received message from server:", data); // Add this line
-        setMessages((prevMessages) => [...prevMessages, data]);
-    });
+        // Event handler for receiving new chat messages
+        socketRef.current.on('chat_message', (data) => {
+            setMessages((prevMessages) => [...prevMessages, data]);
+        });
 
-    // Event handler for disconnections
-    socketRef.current.on('disconnect', () => {
-        console.log('Chat socket disconnected.');
-    });
+        // Event handler for disconnections
+        socketRef.current.on('disconnect', () => {
+            console.log('Chat socket disconnected.');
+        });
 
-    // Cleanup function on component unmount
-    return () => {
-        if (socketRef.current) {
-            socketRef.current.disconnect();
-        }
-    };
-}, [boardId, authToken]);
+        // Cleanup function on component unmount
+        return () => {
+            if (socketRef.current) {
+                socketRef.current.disconnect();
+            }
+        };
+    }, [boardId, authToken]);
 
     const sendMessage = (e) => {
         e.preventDefault();
