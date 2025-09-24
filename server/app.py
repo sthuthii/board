@@ -204,21 +204,34 @@ def create_app():
         leave_room(str(room))
         emit('status', {'msg': f'User {user_id} has left the room.'}, room=str(room))
     
+   # In your app.py file
+
     @socketio.on('chat_message')
     @jwt_required()
     def on_chat_message(data):
         user_id = int(get_jwt_identity())
         room = data.get('board_id')
         message = data.get('message')
+
         if not all([room, message]):
             return
+    
+    # Save the message to the database first
         new_chat_message = ChatMessage(board_id=room, user_id=user_id, message=message)
         db.session.add(new_chat_message)
         db.session.commit()
-        # You need to import the User model here to use it
-        from models import User
-        emit('chat_message', {'user_id': user_id, 'username': User.query.get(user_id).username, 'message': message, 'timestamp': new_chat_message.timestamp.isoformat()}, room=str(room))
 
+    # Find the user by ID and provide a fallback username
+        user = User.query.get(user_id)
+        username = user.username if user else "Guest"
+    
+    # Emit the message to all clients
+        emit('chat_message', {
+        'user_id': user_id,
+        'username': username,
+        'message': message,
+        'timestamp': new_chat_message.timestamp.isoformat()
+        }, room=str(room))
     @socketio.on('task_update')
     @jwt_required()
     def on_task_update(data):
