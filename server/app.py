@@ -122,23 +122,6 @@ def create_app():
                 "whiteboard_data": board.whiteboard_data,
             }), 200
 
-        @app.route('/api/boards/<int:board_id>/tasks', methods=['POST'])
-        @jwt_required()
-        def create_task(board_id):
-            user_id = int(get_jwt_identity())
-            data = request.get_json()
-            title = data.get('title')
-            description = data.get('description', None)
-            assignee_id = data.get('assignee_id', None)
-            if not title:
-                return jsonify({"msg": "Task title is required"}), 400
-            is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
-            if not is_member:
-                return jsonify({"msg": "You are not a member of this board"}), 403
-            new_task = Task(board_id=board_id, title=title, description=description, assignee_id=assignee_id, status='to_do')
-            db.session.add(new_task)
-            db.session.commit()
-            return jsonify({"msg": "Task created successfully", "task_id": new_task.id, "title": new_task.title}), 201
 
         @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
         @jwt_required()
@@ -237,6 +220,50 @@ def create_app():
             room = data.get('board_id')
             update_data = data.get('update_data')
             emit('whiteboard_update', update_data, room=str(room), broadcast=True, include_self=False)
+
+        
+
+        # In app.py
+
+        @app.route('/api/boards/<int:board_id>/tasks', methods=['POST'])
+        @jwt_required()
+        def create_task(board_id):
+            user_id = int(get_jwt_identity())
+            data = request.get_json()
+            title = data.get('title')
+            description = data.get('description', None)
+            assignee_id = data.get('assignee_id', None)
+            if not title:
+                return jsonify({"msg": "Task title is required"}), 400
+            is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
+            if not is_member:
+                return jsonify({"msg": "You are not a member of this board"}), 403
+            new_task = Task(board_id=board_id, title=title, description=description, assignee_id=assignee_id, status='to_do')
+            db.session.add(new_task)
+            db.session.commit()
+    # Return the full task object
+            return jsonify({
+        "msg": "Task created successfully",
+        "task": {
+            "id": new_task.id,
+            "title": new_task.title,
+            "description": new_task.description,
+            "assignee_id": new_task.assignee_id,
+            "status": new_task.status
+        }
+            }), 201
+
+        @app.route('/api/users/<int:user_id>', methods=['GET'])
+        @jwt_required()
+        def get_user(user_id):
+            user = User.query.get(user_id)
+            if not user:
+                return jsonify({"msg": "User not found"}), 404
+            return jsonify({
+        "id": user.id,
+        "username": user.username,
+        "email": user.email
+    }), 200
 
         return app
 

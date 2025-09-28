@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
-import './Dashboard.css'
+import './Dashboard.css';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
@@ -51,7 +51,7 @@ const Dashboard = ({ authToken, handleLogout }) => {
         }
     };
 
-   return (
+    return (
     <div className="dashboard-page-container">
         <header className="dashboard-header">
             <h1>Collabboard Dashboard</h1>
@@ -78,7 +78,10 @@ const Dashboard = ({ authToken, handleLogout }) => {
                         <div key={board.id} className="board-card">
                             <h3>{board.name}</h3>
                             <p>ID: {board.id}</p>
-                            <Link to={`/boards/${board.id}/whiteboard`}>Go to Whiteboard</Link>
+                            <div className="board-card-links">
+                                <Link to={`/boards/${board.id}`}>Go to Board</Link>
+                                <Link to={`/boards/${board.id}/whiteboard`}>Go to Whiteboard</Link>
+                            </div>
                         </div>
                     ))
                 ) : (

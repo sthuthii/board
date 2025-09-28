@@ -82,31 +82,35 @@ const Whiteboard = ({ authToken }) => {
     };
 
     const toggleDrawingMode = (mode) => {
-        const canvas = fabricCanvasRef.current;
-        if (!canvas) {
-            return;
-        }
-    
-        const newMode = drawingMode === mode ? null : mode;
-        setDrawingMode(newMode);
-    
-        if (newMode === 'Pencil') {
-            canvas.isDrawingMode = true;
-            canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-            canvas.freeDrawingBrush.width = 10;
-            canvas.freeDrawingBrush.color = '#892323';
-        } else if (newMode === 'Eraser') {
-            canvas.isDrawingMode = true;
-            canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-            canvas.freeDrawingBrush.color = 'rgba(0,0,0,0)'; 
-            canvas.freeDrawingBrush.globalCompositeOperation = 'destination-out';
-            canvas.freeDrawingBrush.width = 20;
-        } else {
-            canvas.isDrawingMode = false;
-            canvas.globalCompositeOperation = 'source-over';
-        }
-    };
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) {
+        return;
+    }
 
+    const newMode = drawingMode === mode ? null : mode;
+    setDrawingMode(newMode);
+
+    if (newMode === 'Pencil') {
+        canvas.isDrawingMode = true;
+        canvas.selection = false;
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        canvas.freeDrawingBrush.width = 10;
+        canvas.freeDrawingBrush.color = '#892323';
+        canvas.globalCompositeOperation = 'source-over';
+    } else if (newMode === 'Eraser') {
+        canvas.isDrawingMode = true;
+        canvas.selection = false;
+        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+        canvas.freeDrawingBrush.color = 'rgba(0,0,0,0)'; 
+        canvas.freeDrawingBrush.width = 20;
+        canvas.globalCompositeOperation = 'destination-out';
+    } else {
+        // This is the key change: When no tool is active, enable selection mode.
+        canvas.isDrawingMode = false;
+        canvas.selection = true;
+        canvas.globalCompositeOperation = 'source-over';
+    }
+};
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
         if (text) {
@@ -174,23 +178,44 @@ useEffect(() => {
         };
     }
 }, [boardId, authToken, loadWhiteboardState, setupSocketConnection, syncChanges]);
-    return (
-        <div className="whiteboard-page-container">
-            <div className="whiteboard-container">
-                <div className="whiteboard-toolbar">
-                    <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>Pen</button>
-                    <button onClick={() => toggleDrawingMode('Eraser')} className={drawingMode === 'Eraser' ? 'active-tool' : ''}>Eraser</button>
-                    <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>Sticky Note</button>
-                    <button onClick={saveWhiteboardState}>Save</button>
-                    <button onClick={clearCanvas}>Clear All</button>
-                    <button onClick={deleteSelectedObjects}>Delete</button>
-                </div>
-                <canvas ref={canvasRef} id="main-whiteboard" width="1000" height="600" />
-                <p className="message">{message}</p>
+   return (
+    <div className="whiteboard-page-container">
+        <div className="whiteboard-container">
+            <div className="whiteboard-toolbar">
+                <button
+                    onClick={() => toggleDrawingMode(null)}
+                    className={drawingMode === null ? 'active-tool' : ''}
+                >
+                    Select
+                </button>
+                <button
+                    onClick={() => toggleDrawingMode('Pencil')}
+                    className={drawingMode === 'Pencil' ? 'active-tool' : ''}
+                >
+                    Pen
+                </button>
+                <button
+                    onClick={() => toggleDrawingMode('Eraser')}
+                    className={drawingMode === 'Eraser' ? 'active-tool' : ''}
+                >
+                    Eraser
+                </button>
+                <button
+                    onClick={addStickyNote}
+                    className={drawingMode === 'StickyNote' ? 'active-tool' : ''}
+                >
+                    Sticky Note
+                </button>
+                <button onClick={saveWhiteboardState}>Save</button>
+                <button onClick={clearCanvas}>Clear All</button>
+                <button onClick={deleteSelectedObjects}>Delete</button>
             </div>
-            <Chat boardId={boardId} authToken={authToken} />
+            <canvas ref={canvasRef} id="main-whiteboard" width="1000" height="600" />
+            <p className="message">{message}</p>
         </div>
-    );
+        <Chat boardId={boardId} authToken={authToken} />
+    </div>
+);
 };
 
 export default Whiteboard;

@@ -1,0 +1,82 @@
+/* General page layout */
+.board-view-container {
+    display: flex;
+    width: 198vh;
+    justify-content: center;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    padding: 20px;
+}
+
+/* Board title and messages */
+.board-view-container h1 {
+    font-size: 28px;
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.board-view-container .message {
+    font-size: 14px;
+    color: #ff5252;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* Kanban board layout */
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    flex-grow: 1;
+}
+
+/* Kanban column styling */
+.kanban-column {
+    background-color: #e2e8f0;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.kanban-column h2 {
+    font-size: 18px;
+    font-weight: 600;
+    color: #4a4a4a;
+    margin-bottom: 15px;
+    text-align: center;
+}
+
+/* Task card styling */
+.task-card {
+    background-color: #ffffff;
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 10px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+}
+
+.task-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+}
+
+.task-card h4 {
+    font-size: 16px;
+    font-weight: 500;
+    margin: 0 0 5px;
+    color: #2d3748;
+}
+
+.task-card p {
+    font-size: 14px;
+    color: #718096;
+    margin: 0;
+}

@@ -145,3 +145,56 @@
     font-weight: 500;
     color: #4a4a4a;
 }
+
+/* In Dashboard.css */
+.board-card-links {
+    display: flex;
+    justify-content: space-around;
+    margin-top: 15px;
+}
+
+.board-card-links a {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.board-card-links a:hover {
+    background-color: #0056b3;
+}
+
+/* In BoardView.css */
+
+.task-creation-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.task-creation-form input {
+    width: 300px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+
+.task-creation-form button {
+    padding: 10px 15px;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.task-assignee {
+    font-size: 12px;
+    color: #555;
+    margin-top: 5px;
+    font-style: italic;
+}
