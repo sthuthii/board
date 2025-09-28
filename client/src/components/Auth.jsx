@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import './Auth.css'
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
@@ -30,6 +31,7 @@ const Auth = ({ setAuthToken }) => {
     };
 
     return (
+    <div className="auth-page-container">
         <div className="auth-container">
             <h2>{isLogin ? 'Login' : 'Register'}</h2>
             <form onSubmit={handleSubmit}>
@@ -63,7 +65,8 @@ const Auth = ({ setAuthToken }) => {
                 {isLogin ? 'Need to register?' : 'Already have an account?'}
             </button>
         </div>
-    );
+    </div>
+);
 };
 
 export default Auth;

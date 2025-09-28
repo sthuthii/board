@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import './Dashboard.css'
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
@@ -23,9 +24,8 @@ const Dashboard = ({ authToken, handleLogout }) => {
             setBoards(response.data);
         } catch (error) {
             setMessage('Failed to fetch boards.');
-            console.error('Error fetching boards:', error);
             if (error.response?.status === 401) {
-                handleLogout(); // Log out if the token is invalid
+                handleLogout();
             }
         }
     };
@@ -45,23 +45,26 @@ const Dashboard = ({ authToken, handleLogout }) => {
             );
             setMessage('Board created successfully!');
             setBoardName('');
-            fetchBoards(); // Refresh the list of boards
+            fetchBoards();
         } catch (error) {
             setMessage(error.response?.data?.msg || 'An error occurred.');
         }
     };
 
-    return (
-        <div className="dashboard-container">
-            <h1>Your Boards</h1>
+   return (
+    <div className="dashboard-page-container">
+        <header className="dashboard-header">
+            <h1>Collabboard Dashboard</h1>
             <button onClick={handleLogout}>Logout</button>
+        </header>
 
-            <form onSubmit={handleCreateBoard}>
+        <main className="dashboard-content">
+            <form onSubmit={handleCreateBoard} className="board-form">
                 <input
                     type="text"
                     value={boardName}
                     onChange={(e) => setBoardName(e.target.value)}
-                    placeholder="New Board Name"
+                    placeholder="Enter new board name"
                     required
                 />
                 <button type="submit">Create Board</button>
@@ -69,7 +72,7 @@ const Dashboard = ({ authToken, handleLogout }) => {
 
             <p className="message">{message}</p>
 
-            <div className="board-list">
+            <div className="board-list-container">
                 {boards.length > 0 ? (
                     boards.map((board) => (
                         <div key={board.id} className="board-card">
@@ -82,8 +85,9 @@ const Dashboard = ({ authToken, handleLogout }) => {
                     <p>No boards found. Create a new one!</p>
                 )}
             </div>
-        </div>
-    );
+        </main>
+    </div>
+);
 };
 
 export default Dashboard;

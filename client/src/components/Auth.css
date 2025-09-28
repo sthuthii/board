@@ -1,0 +1,158 @@
+/* General page layout */
+/* General page layout */
+.auth-page-container {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    min-height: 95vh;
+    width: 195vh;
+    background-color: #f0f2f5;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    padding: 20px;
+}
+
+/* Authentication container (Login/Registration box) */
+.auth-container {
+    background-color: #ffffff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
+
+.auth-container h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #4a4a4a;
+}
+
+/* Form and input fields */
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-container input {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.auth-container button[type="submit"] {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.auth-container button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Message and toggle button */
+.auth-container .message {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #ff5252;
+}
+
+.auth-container button {
+    margin-top: 20px;
+    padding: 10px;
+    border: none;
+    background: none;
+    color: #007bff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.auth-container button:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.auth-container h2 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: #4a4a4a;
+}
+
+/* Form and input fields */
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.auth-container input {
+    padding: 12px 15px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.auth-container input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.auth-container button[type="submit"] {
+    padding: 12px 15px;
+    border: none;
+    border-radius: 8px;
+    background-color: #007bff;
+    color: white;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.auth-container button[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Message and toggle button */
+.auth-container .message {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #ff5252;
+}
+
+.auth-container button {
+    margin-top: 20px;
+    padding: 10px;
+    border: none;
+    background: none;
+    color: #007bff;
+    font-size: 14px;
+    cursor: pointer;
+    transition: color 0.2s ease-in-out;
+}
+
+.auth-container button:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}

@@ -3,8 +3,8 @@ import { useParams } from 'react-router-dom';
 import * as fabric from 'fabric';
 import axios from 'axios';
 import { io } from 'socket.io-client';
-import './Whiteboard.css';
 import Chat from './Chat';
+import './Whiteboard.css';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 const SOCKET_URL = 'http://127.0.0.1:5000';
@@ -17,7 +17,6 @@ const Whiteboard = ({ authToken }) => {
     const [message, setMessage] = useState('');
     const [drawingMode, setDrawingMode] = useState(null);
 
-    // Use useCallback to stabilize the functions
     const syncChanges = useCallback(() => {
         if (!socketRef.current) return;
         const canvas = fabricCanvasRef.current;
@@ -82,43 +81,32 @@ const Whiteboard = ({ authToken }) => {
         }
     };
 
-    // Corrected toggleDrawingMode function
-// In Whiteboard.jsx
-const toggleDrawingMode = (mode) => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) {
-        return;
-    }
+    const toggleDrawingMode = (mode) => {
+        const canvas = fabricCanvasRef.current;
+        if (!canvas) {
+            return;
+        }
+    
+        const newMode = drawingMode === mode ? null : mode;
+        setDrawingMode(newMode);
+    
+        if (newMode === 'Pencil') {
+            canvas.isDrawingMode = true;
+            canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+            canvas.freeDrawingBrush.width = 10;
+            canvas.freeDrawingBrush.color = '#892323';
+        } else if (newMode === 'Eraser') {
+            canvas.isDrawingMode = true;
+            canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
+            canvas.freeDrawingBrush.color = 'rgba(0,0,0,0)'; 
+            canvas.freeDrawingBrush.globalCompositeOperation = 'destination-out';
+            canvas.freeDrawingBrush.width = 20;
+        } else {
+            canvas.isDrawingMode = false;
+            canvas.globalCompositeOperation = 'source-over';
+        }
+    };
 
-    const newMode = drawingMode === mode ? null : mode;
-    setDrawingMode(newMode);
-
-    if (newMode === 'Pencil') {
-        canvas.isDrawingMode = true;
-        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-        canvas.freeDrawingBrush.width = 10;
-        canvas.freeDrawingBrush.color = '#892323';
-    } else if (newMode === 'Eraser') {
-        canvas.isDrawingMode = true;
-        canvas.freeDrawingBrush = new fabric.PencilBrush(canvas);
-        // Set a transparent color for the brush
-        canvas.freeDrawingBrush.color = 'rgba(0,0,0,1)';
-        canvas.freeDrawingBrush.width = 20;
-        // This is the key line that makes the eraser work
-        canvas.globalCompositeOperation = 'destination-out';
-    } else {
-        canvas.isDrawingMode = false;
-        // Reset the composite operation when done erasing
-        canvas.globalCompositeOperation = 'source-over';
-    }
-};
-
-const clearCanvas = () => {
-    if (fabricCanvasRef.current) {
-        fabricCanvasRef.current.clear();
-        syncChanges(); // Sync the empty canvas
-    }
-};
     const addStickyNote = () => {
         const text = prompt("Enter sticky note text:");
         if (text) {
@@ -134,8 +122,38 @@ const clearCanvas = () => {
         }
     };
 
-    // The useEffect hook now has stable function references
-    useEffect(() => {
+    const clearCanvas = () => {
+        if (fabricCanvasRef.current) {
+            fabricCanvasRef.current.clear();
+            syncChanges();
+        }
+    };
+
+    // Corrected deleteSelectedObjects function
+const deleteSelectedObjects = () => {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas) return;
+
+    const activeObjects = canvas.getActiveObjects();
+
+    // Check if there are any selected objects
+    if (activeObjects && activeObjects.length > 0) {
+        activeObjects.forEach(object => {
+            canvas.remove(object);
+        });
+
+        canvas.discardActiveObject();
+        canvas.renderAll();
+        
+        syncChanges();
+    }
+};
+
+
+// The corrected useEffect hook
+useEffect(() => {
+    // This is the core fix: all setup now depends on authToken being present
+    if (authToken) {
         const canvas = new fabric.Canvas(canvasRef.current);
         fabricCanvasRef.current = canvas;
 
@@ -145,6 +163,7 @@ const clearCanvas = () => {
         canvas.on('object:modified', syncChanges);
         canvas.on('object:added', syncChanges);
 
+        // This return function will now correctly clean up the canvas and socket
         return () => {
             if (socketRef.current) {
                 socketRef.current.disconnect();
@@ -153,49 +172,25 @@ const clearCanvas = () => {
                 fabricCanvasRef.current.dispose();
             }
         };
-    }, [boardId, loadWhiteboardState, setupSocketConnection, syncChanges]);
-
-    // Inside the Whiteboard component, alongside your other functions
-const deleteSelectedObjects = () => {
-    const canvas = fabricCanvasRef.current;
-    if (!canvas) return;
-
-    // Get the currently active object or group of objects
-    const activeObject = canvas.getActiveObjects();
-
-    if (activeObject) {
-        // Remove each selected object
-        activeObject.forEach(object => {
-            canvas.remove(object);
-        });
-
-        // Clear the selection
-        canvas.discardActiveObject();
-        canvas.renderAll();
-        
-        // Sync the changes with other users
-        syncChanges();
     }
-};
-
-   return (
-    <div className="whiteboard-page-container">
-        <div className="whiteboard-container">
-            <div className="whiteboard-toolbar">
-                <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>Pen</button>
-                <button onClick={() => toggleDrawingMode('Eraser')} className={drawingMode === 'Eraser' ? 'active-tool' : ''}>Eraser</button>
-                <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>Sticky Note</button>
-                <button onClick={saveWhiteboardState}>Save</button>
-                <button onClick={clearCanvas}>Clear All</button>
-                <button onClick={deleteSelectedObjects}>Delete</button>
+}, [boardId, authToken, loadWhiteboardState, setupSocketConnection, syncChanges]);
+    return (
+        <div className="whiteboard-page-container">
+            <div className="whiteboard-container">
+                <div className="whiteboard-toolbar">
+                    <button onClick={() => toggleDrawingMode('Pencil')} className={drawingMode === 'Pencil' ? 'active-tool' : ''}>Pen</button>
+                    <button onClick={() => toggleDrawingMode('Eraser')} className={drawingMode === 'Eraser' ? 'active-tool' : ''}>Eraser</button>
+                    <button onClick={addStickyNote} className={drawingMode === 'StickyNote' ? 'active-tool' : ''}>Sticky Note</button>
+                    <button onClick={saveWhiteboardState}>Save</button>
+                    <button onClick={clearCanvas}>Clear All</button>
+                    <button onClick={deleteSelectedObjects}>Delete</button>
+                </div>
+                <canvas ref={canvasRef} id="main-whiteboard" width="1000" height="600" />
+                <p className="message">{message}</p>
             </div>
-            <canvas ref={canvasRef} id="main-whiteboard" width="1000" height="600" />
-            <p className="message">{message}</p>
+            <Chat boardId={boardId} authToken={authToken} />
         </div>
-        {/* The new Chat component */}
-        <Chat boardId={boardId} authToken={authToken} />
-    </div>
-);
+    );
 };
 
 export default Whiteboard;
