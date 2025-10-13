@@ -19,8 +19,11 @@ class Board(db.Model):
 class BoardMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     board_id = db.Column(db.Integer, db.ForeignKey('board.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True) # Now nullable for pending invites
     role = db.Column(db.String(20), default='member')
+    status = db.Column(db.String(20), default='invited') # New column: 'invited' or 'member'
+    invite_token = db.Column(db.String(120), unique=True, nullable=True) # New column for invite links
+    
 
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)

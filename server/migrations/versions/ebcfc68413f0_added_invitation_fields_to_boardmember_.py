@@ -1,8 +1,8 @@
-"""Initial database migration
+"""Added invitation fields to BoardMember model
 
-Revision ID: cfc792fec694
+Revision ID: ebcfc68413f0
 Revises: 
-Create Date: 2025-09-05 13:47:49.638295
+Create Date: 2025-10-13 15:38:26.737584
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'cfc792fec694'
+revision = 'ebcfc68413f0'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -40,11 +40,14 @@ def upgrade():
     op.create_table('board_member',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('board_id', sa.Integer(), nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
+    sa.Column('user_id', sa.Integer(), nullable=True),
     sa.Column('role', sa.String(length=20), nullable=True),
+    sa.Column('status', sa.String(length=20), nullable=True),
+    sa.Column('invite_token', sa.String(length=120), nullable=True),
     sa.ForeignKeyConstraint(['board_id'], ['board.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('invite_token')
     )
     op.create_table('chat_message',
     sa.Column('id', sa.Integer(), nullable=False),

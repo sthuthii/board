@@ -1,3 +1,4 @@
+# In app.py
 from flask import Flask, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -7,6 +8,9 @@ from flask_socketio import SocketIO, emit, join_room, leave_room
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from datetime import timedelta
+from itsdangerous import URLSafeTimedSerializer
+from flask_mail import Mail, Message
+from flask.cli import with_appcontext
 
 # Create the extensions without an app instance
 db = SQLAlchemy()
@@ -14,6 +18,8 @@ migrate = Migrate()
 jwt = JWTManager()
 cors = CORS()
 socketio = SocketIO()
+mail = Mail()
+serializer = URLSafeTimedSerializer("your-super-secret-key-for-invites") # Use a separate, secure key here
 
 def create_app():
     """Application Factory Function"""
@@ -25,14 +31,21 @@ def create_app():
         app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
         app.config['JWT_SECRET_KEY'] = 'your-super-secret-key-that-should-be-in-env'
         
+        # Email configuration for sending invites (using a placeholder for now)
+        app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+        app.config['MAIL_PORT'] = 587
+        app.config['MAIL_USE_TLS'] = True
+        app.config['MAIL_USERNAME'] = 'your-email@gmail.com'
+        app.config['MAIL_PASSWORD'] = 'your-email-password'
+        app.config['MAIL_DEFAULT_SENDER'] = 'your-email@gmail.com'
+
         # Initialize extensions with the app
         db.init_app(app)
         migrate.init_app(app, db)
         jwt.init_app(app)
         cors.init_app(app, resources={r"/api/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"]}})
-        
-        # Final, robust SocketIO configuration WITHOUT a message queue
         socketio.init_app(app, cors_allowed_origins="*")
+        mail.init_app(app)
 
         # Import and register models (necessary for migration)
         from models import User, Board, BoardMember, Task, ChatMessage
@@ -78,13 +91,18 @@ def create_app():
             user_id = int(get_jwt_identity())
             data = request.get_json()
             name = data.get('name')
+            member_ids = data.get('members', [])
             if not name:
                 return jsonify({"msg": "Board name is required"}), 400
             new_board = Board(name=name, owner_id=user_id)
             db.session.add(new_board)
             db.session.flush()
-            board_member = BoardMember(board_id=new_board.id, user_id=user_id, role='owner')
+            board_member = BoardMember(board_id=new_board.id, user_id=user_id, role='owner', status='member')
             db.session.add(board_member)
+            for member_id in member_ids:
+                if User.query.get(member_id):
+                    new_member = BoardMember(board_id=new_board.id, user_id=member_id, role='member', status='member')
+                    db.session.add(new_member)
             db.session.commit()
             return jsonify({"msg": "Board created successfully", "board_id": new_board.id, "board_name": new_board.name}), 201
 
@@ -121,7 +139,113 @@ def create_app():
                 "owner_id": board.owner_id,
                 "whiteboard_data": board.whiteboard_data,
             }), 200
+        
+        # This endpoint sends an invitation email
+        @app.route('/api/boards/<int:board_id>/invite', methods=['POST'])
+        @jwt_required()
+        def invite_member(board_id):
+            inviter_id = int(get_jwt_identity())
+            is_inviter_member = BoardMember.query.filter_by(board_id=board_id, user_id=inviter_id).first()
+            if not is_inviter_member:
+                return jsonify({"msg": "You are not a member of this board"}), 403
+            
+            data = request.get_json()
+            email = data.get('email')
+            if not email:
+                return jsonify({"msg": "Email is required"}), 400
+            
+            # Check if user already exists
+            user = User.query.filter_by(email=email).first()
+            if not user:
+                return jsonify({"msg": "User with this email does not exist."}), 404
 
+            # Check if user is already a member
+            if BoardMember.query.filter_by(board_id=board_id, user_id=user.id, status='member').first():
+                return jsonify({"msg": "User is already a member."}), 409
+
+            # Generate a unique invite token
+            token = serializer.dumps({'board_id': board_id, 'user_id': user.id})
+            
+            # Create a pending invite in the database
+            invite = BoardMember(board_id=board_id, user_id=user.id, invite_token=token, role='member', status='invited')
+            db.session.add(invite)
+            db.session.commit()
+            
+            # Send the invitation email (placeholder link)
+            invite_url = f"http://localhost:5173/accept-invite/{token}"
+            msg = Message("Collabboard Invitation", recipients=[email])
+            msg.body = f"Hello {user.username}, you have been invited to a board on Collabboard. Click here to accept: {invite_url}"
+            mail.send(msg)
+            
+            return jsonify({"msg": "Invitation sent successfully."}), 200
+
+        # This endpoint accepts an invitation
+        @app.route('/api/invites/<string:token>', methods=['GET'])
+        def accept_invite(token):
+            try:
+                data = serializer.loads(token, max_age=3600) # Token expires in 1 hour
+                board_id = data.get('board_id')
+                user_id = data.get('user_id')
+            except:
+                return jsonify({"msg": "The invitation link is invalid or has expired."}), 400
+            
+            # Find the pending invite in the database
+            invite = BoardMember.query.filter_by(board_id=board_id, user_id=user_id, invite_token=token).first()
+            
+            if not invite:
+                return jsonify({"msg": "The invitation link is not valid."}), 400
+            
+            # Update the status and remove the token
+            invite.status = 'member'
+            invite.invite_token = None
+            db.session.commit()
+            
+            return jsonify({"msg": "Invitation accepted. You are now a member of the board."}), 200
+        
+        @app.route('/api/users/search', methods=['GET'])
+        @jwt_required()
+        def get_users_by_query():
+            query = request.args.get('q')
+            if not query:
+                return jsonify([]), 200
+            
+            users = User.query.filter((User.username.ilike(f'%{query}%')) | (User.email.ilike(f'%{query}%'))).all()
+            
+            return jsonify([{"id": user.id, "username": user.username, "email": user.email} for user in users]), 200
+
+        @app.route('/api/boards/<int:board_id>/members', methods=['GET'])
+        @jwt_required()
+        def get_board_members(board_id):
+            user_id = int(get_jwt_identity())
+            is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
+            if not is_member:
+                return jsonify({"msg": "You are not a member of this board"}), 403
+
+            memberships = BoardMember.query.filter_by(board_id=board_id).all()
+            members = []
+            for member in memberships:
+                user = User.query.get(member.user_id)
+                if user:
+                    members.append({"id": user.id, "username": user.username, "role": member.role})
+            return jsonify(members), 200
+
+        @app.route('/api/boards/<int:board_id>/tasks', methods=['POST'])
+        @jwt_required()
+        def create_task(board_id):
+            user_id = int(get_jwt_identity())
+            data = request.get_json()
+            title = data.get('title')
+            description = data.get('description', None)
+            assignee_id = data.get('assignee_id', None)
+            if not title:
+                return jsonify({"msg": "Task title is required"}), 400
+            is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
+            if not is_member:
+                return jsonify({"msg": "You are not a member of this board"}), 403
+            new_task = Task(board_id=board_id, title=title, description=description, assignee_id=assignee_id, status='to_do')
+            db.session.add(new_task)
+            db.session.commit()
+            return jsonify({"msg": "Task created successfully", "task": {"id": new_task.id, "title": new_task.title, "description": new_task.description, "assignee_id": new_task.assignee_id, "status": new_task.status}}), 201
 
         @app.route('/api/tasks/<int:task_id>', methods=['PUT'])
         @jwt_required()
@@ -168,14 +292,13 @@ def create_app():
             board.whiteboard_data = whiteboard_state
             db.session.commit()
             return jsonify({"msg": "Whiteboard saved successfully"}), 200
-
-        # -------------------- SocketIO Event Handlers --------------------
+        
         @socketio.on('join')
         @jwt_required()
         def on_join(data):
             user_id = int(get_jwt_identity())
             room = data.get('board_id')
-            is_member = BoardMember.query.filter_by(board_id=room, user_id=user_id).first()
+            is_member = BoardMember.query.filter_by(board_id=room, user_id=user_id, status='member').first()
             if is_member:
                 join_room(str(room))
                 emit('status', {'msg': f'User {user_id} has entered the room.'}, room=str(room))
@@ -220,50 +343,6 @@ def create_app():
             room = data.get('board_id')
             update_data = data.get('update_data')
             emit('whiteboard_update', update_data, room=str(room), broadcast=True, include_self=False)
-
-        
-
-        # In app.py
-
-        @app.route('/api/boards/<int:board_id>/tasks', methods=['POST'])
-        @jwt_required()
-        def create_task(board_id):
-            user_id = int(get_jwt_identity())
-            data = request.get_json()
-            title = data.get('title')
-            description = data.get('description', None)
-            assignee_id = data.get('assignee_id', None)
-            if not title:
-                return jsonify({"msg": "Task title is required"}), 400
-            is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
-            if not is_member:
-                return jsonify({"msg": "You are not a member of this board"}), 403
-            new_task = Task(board_id=board_id, title=title, description=description, assignee_id=assignee_id, status='to_do')
-            db.session.add(new_task)
-            db.session.commit()
-    # Return the full task object
-            return jsonify({
-        "msg": "Task created successfully",
-        "task": {
-            "id": new_task.id,
-            "title": new_task.title,
-            "description": new_task.description,
-            "assignee_id": new_task.assignee_id,
-            "status": new_task.status
-        }
-            }), 201
-
-        @app.route('/api/users/<int:user_id>', methods=['GET'])
-        @jwt_required()
-        def get_user(user_id):
-            user = User.query.get(user_id)
-            if not user:
-                return jsonify({"msg": "User not found"}), 404
-            return jsonify({
-        "id": user.id,
-        "username": user.username,
-        "email": user.email
-    }), 200
 
         return app
 

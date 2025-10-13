@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import './BoardView.css';
+import { Link } from 'react-router-dom';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
@@ -73,39 +74,44 @@ const BoardView = ({ authToken, handleLogout }) => {
         }
     };
     
-    const onDragEnd = async (result) => {
-        const { destination, source, draggableId } = result;
+    // In BoardView.jsx
+const onDragEnd = async (result) => {
+    const { destination, source, draggableId } = result;
 
-        if (!destination) {
-            return;
-        }
+    if (!destination) {
+        return;
+    }
 
-        if (destination.droppableId === source.droppableId && destination.index === source.index) {
-            return;
-        }
+    if (destination.droppableId === source.droppableId && destination.index === source.index) {
+        return;
+    }
 
-        const movedTask = tasks.find(task => task.id === parseInt(draggableId));
-        if (!movedTask) return;
+    const newStatus = destination.droppableId;
+    const movedTaskIndex = tasks.findIndex(task => task.id === parseInt(draggableId));
+    if (movedTaskIndex === -1) return;
 
-        const newTasks = Array.from(tasks);
-        newTasks.splice(source.index, 1);
-        newTasks.splice(destination.index, 0, movedTask);
-        setTasks(newTasks);
-
-        const newStatus = destination.droppableId;
-        if (movedTask.status !== newStatus) {
-            try {
-                await axios.put(`${API_URL}/tasks/${movedTask.id}`, { status: newStatus }, {
-                    headers: { Authorization: `Bearer ${authToken}` },
-                });
-                fetchBoardData(); // Re-fetch to sync
-            } catch (error) {
-                console.error("Failed to update task status:", error);
-                setMessage("Failed to update task status. Please refresh.");
-                fetchBoardData(); // Revert on error
-            }
-        }
-    };
+    const movedTask = { ...tasks[movedTaskIndex], status: newStatus };
+    
+    // Create a new array of tasks with the updated status and order
+    const newTasks = Array.from(tasks).filter(task => task.id !== parseInt(draggableId));
+    newTasks.splice(destination.index, 0, movedTask);
+    
+    // Update the state immediately
+    setTasks(newTasks);
+    
+    // Call the backend to persist the change
+    try {
+        await axios.put(`${API_URL}/tasks/${movedTask.id}`, { status: newStatus }, {
+            headers: { Authorization: `Bearer ${authToken}` },
+        });
+        setMessage(`Task moved to ${newStatus}`);
+    } catch (error) {
+        console.error("Failed to update task status:", error);
+        setMessage("Failed to update task status. Please refresh.");
+        // If the backend call fails, re-fetch the data to revert the changes
+        fetchBoardData();
+    }
+};
 
     if (!board) {
         return <div>Loading board...</div>;
@@ -116,9 +122,13 @@ const BoardView = ({ authToken, handleLogout }) => {
     };
 
     return (
-        <div className="board-view-container">
-            <h1>{board.name}</h1>
-            <p className="message">{message}</p>
+    <div className="board-page-container">
+        <div className="kanban-board-wrapper">
+            <h1 className="board-title">{board.name}</h1>
+            <div className="board-actions">
+                <Link to={`/boards/${boardId}/whiteboard`}>Go to Whiteboard</Link>
+                <p className="message">{message}</p>
+            </div>
 
             <form onSubmit={handleCreateTask} className="task-creation-form">
                 <input
@@ -164,7 +174,12 @@ const BoardView = ({ authToken, handleLogout }) => {
                 </div>
             </DragDropContext>
         </div>
-    );
+        <div className="task-assignee-sidebar">
+            <h2 className="sidebar-title">Board Members</h2>
+            <p>List of board members goes here...</p>
+        </div>
+    </div>
+);
 };
 
 export default BoardView;

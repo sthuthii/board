@@ -4,6 +4,7 @@ import Auth from './components/Auth';
 import Dashboard from './components/Dashboard';
 import Whiteboard from './components/WhiteBoard';
 import BoardView from './components/BoardView';
+import TaskAssignee from './components/TaskAsignee';
 
 const App = () => {
     const [authToken, setAuthToken] = useState(localStorage.getItem('token'));
@@ -41,8 +42,16 @@ const App = () => {
                 path="/boards/:boardId/whiteboard"
                 element={<Whiteboard authToken={authToken} />}
             />
+            <Route 
+    path="/boards/:boardId/members"
+    element={<TaskAssignee authToken={authToken} />} />
         </Routes>
+        
     );
 };
 
 export default App;
+
+ // New Import
+
+// ... inside the Routes component

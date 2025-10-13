@@ -1,33 +1,38 @@
-/* General page layout */
-.board-view-container {
+/* Overall page layout using Flexbox */
+.board-page-container {
     display: flex;
-    width: 198vh;
-    justify-content: center;
-    flex-direction: column;
+    width: 210vh;
     min-height: 100vh;
     background-color: #f0f2f5;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     color: #333;
+}
+
+/* Wrapper for the main kanban board, takes up all available space */
+.kanban-board-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
     padding: 20px;
 }
 
-/* Board title and messages */
-.board-view-container h1 {
+/* Kanban board title and actions */
+.board-title {
     font-size: 28px;
     font-weight: 600;
     color: #4a4a4a;
-    margin-bottom: 10px;
-    text-align: center;
-}
-
-.board-view-container .message {
-    font-size: 14px;
-    color: #ff5252;
     margin-bottom: 20px;
     text-align: center;
 }
 
-/* Kanban board layout */
+.board-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+/* Kanban board column layout */
 .kanban-board {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -79,4 +84,44 @@
     font-size: 14px;
     color: #718096;
     margin: 0;
+}
+
+/* Task assignee sidebar */
+.task-assignee-sidebar {
+    width: 300px;
+    background-color: #ffffff;
+    border-left: 1px solid #e0e0e0;
+    padding: 20px;
+    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+}
+
+.sidebar-title {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 20px;
+}
+
+.member-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.member-card {
+    background-color: #f7f9fc;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.back-to-board-button {
+    display: inline-block;
+    margin-top: 20px;
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: white;
+    text-decoration: none;
+    border-radius: 6px;
+    text-align: center;
 }
