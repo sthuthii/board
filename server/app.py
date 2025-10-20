@@ -127,18 +127,38 @@ def create_app():
         @jwt_required()
         def get_board(board_id):
             user_id = int(get_jwt_identity())
+            from models import Board, BoardMember # Ensure models are imported inside the function
+    
+    # 1. Check membership
             is_member = BoardMember.query.filter_by(board_id=board_id, user_id=user_id).first()
             if not is_member:
                 return jsonify({"msg": "You are not a member of this board"}), 403
+    
             board = Board.query.get(board_id)
             if not board:
                 return jsonify({"msg": "Board not found"}), 404
+
+    # 2. Fetch and format tasks (CRITICAL STEP for Kanban persistence)
+            tasks_data = []
+    # This relies on the 'tasks_rel' relationship being defined in models.py
+            for task in board.tasks_rel.all():
+                tasks_data.append({
+            "id": task.id,
+            "title": task.title,
+            "description": task.description,
+            "assignee_id": task.assignee_id,
+            "status": task.status,
+            "board_id": task.board_id
+        })
+
+    # 3. Return the board data including tasks
             return jsonify({
-                "id": board.id,
-                "name": board.name,
-                "owner_id": board.owner_id,
-                "whiteboard_data": board.whiteboard_data,
-            }), 200
+        "id": board.id,
+        "name": board.name,
+        "owner_id": board.owner_id,
+        "whiteboard_data": board.whiteboard_data,
+        "tasks": tasks_data  # <-- This is the data the frontend needs to load
+    }), 200
         
         # This endpoint sends an invitation email
         @app.route('/api/boards/<int:board_id>/invite', methods=['POST'])
