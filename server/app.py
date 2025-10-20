@@ -293,6 +293,29 @@ def create_app():
             db.session.commit()
             return jsonify({"msg": "Whiteboard saved successfully"}), 200
         
+        @app.route('/api/tasks/<int:task_id>', methods=['DELETE'])
+        @jwt_required()
+        def delete_task(task_id):
+            user_id = int(get_jwt_identity())
+            task = Task.query.get(task_id)
+    
+            if not task:
+                return jsonify({"msg": "Task not found"}), 404
+    
+    # Optional: You might want to check if the user is a board member or owner
+            is_member = BoardMember.query.filter_by(board_id=task.board_id, user_id=user_id).first()
+            if not is_member:
+                return jsonify({"msg": "You do not have permission to delete this task"}), 403
+
+            db.session.delete(task)
+            db.session.commit()
+    
+    # Broadcast deletion event (optional, but good for real-time)
+            socketio.emit('task_deleted', {'task_id': task_id, 'board_id': task.board_id}, room=str(task.board_id))
+
+            return jsonify({"msg": "Task deleted successfully"}), 200
+
+        
         @socketio.on('join')
         @jwt_required()
         def on_join(data):
@@ -344,6 +367,9 @@ def create_app():
             update_data = data.get('update_data')
             emit('whiteboard_update', update_data, room=str(room), broadcast=True, include_self=False)
 
+        # In app.py (Add this new function)
+
+        
         return app
 
     except Exception as e:

@@ -1,61 +1,103 @@
-/* Overall page layout using Flexbox */
+/* General page layout - Ensures full viewport usage */
 .board-page-container {
     display: flex;
-    width: 210vh;
     min-height: 100vh;
-    background-color: #f0f2f5;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
+    min-width: 210vh;
+    background-color: #e9eef6; /* Soft, light blue background */
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50; /* Dark, professional text color */
 }
 
-/* Wrapper for the main kanban board, takes up all available space */
+/* Wrapper for the main kanban board area */
 .kanban-board-wrapper {
     flex-grow: 1;
     display: flex;
     flex-direction: column;
-    padding: 20px;
+    padding: 20px 30px;
 }
 
-/* Kanban board title and actions */
+/* Board title and actions */
 .board-title {
-    font-size: 28px;
-    font-weight: 600;
-    color: #4a4a4a;
-    margin-bottom: 20px;
-    text-align: center;
+    font-size: 32px;
+    font-weight: 700;
+    color: #34495e;
+    margin-bottom: 25px;
+    text-align: left;
+    border-bottom: 3px solid #3498db; /* Subtle blue underline */
+    padding-bottom: 10px;
 }
 
-.board-actions {
+.board-actions a {
+    text-decoration: none;
+    color: #3498db;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.board-actions a:hover {
+    color: #2980b9;
+}
+
+/* Task creation form styling */
+.task-creation-form {
     display: flex;
-    justify-content: flex-end;
-    gap: 15px;
-    margin-bottom: 20px;
+    gap: 10px;
+    margin-bottom: 30px;
+    padding: 15px;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Kanban board column layout */
+.task-creation-form input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #bdc3c7;
+    border-radius: 6px;
+    font-size: 15px;
+}
+
+.task-creation-form button {
+    padding: 10px 20px;
+    border: none;
+    background-color: #2ecc71; /* Green for 'Add' action */
+    color: white;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: background-color 0.2s;
+}
+
+.task-creation-form button:hover {
+    background-color: #27ae60;
+}
+
+/* Kanban board layout (Grid) */
 .kanban-board {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(3, 1fr); /* Explicitly set 3 columns */
     gap: 20px;
     flex-grow: 1;
+    align-items: flex-start; /* Ensures columns don't stretch to full height */
 }
 
 /* Kanban column styling */
 .kanban-column {
-    background-color: #e2e8f0;
+    background-color: #ecf0f1; /* Very light gray column background */
     border-radius: 8px;
     padding: 15px;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-height: 400px; /* Give columns a visible base */
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
 }
 
 .kanban-column h2 {
-    font-size: 18px;
-    font-weight: 600;
-    color: #4a4a4a;
+    font-size: 16px;
+    font-weight: 700;
+    color: #34495e;
     margin-bottom: 15px;
-    text-align: center;
+    padding-bottom: 5px;
+    border-bottom: 2px solid #bdc3c7;
+    text-align: left;
 }
 
 /* Task card styling */
@@ -64,41 +106,53 @@
     border-radius: 6px;
     padding: 15px;
     margin-bottom: 10px;
+    border-left: 5px solid #f39c12; /* Visual accent for tasks */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease-in-out;
+    cursor: grab; /* Indicates drag capability */
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
 .task-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }
 
 .task-card h4 {
     font-size: 16px;
-    font-weight: 500;
+    font-weight: 600;
     margin: 0 0 5px;
-    color: #2d3748;
+    color: #2c3e50;
 }
 
 .task-card p {
-    font-size: 14px;
-    color: #718096;
+    font-size: 12px;
+    color: #7f8c8d;
     margin: 0;
+}
+
+.task-assignee {
+    margin-top: 8px !important;
+    font-style: italic;
+    font-weight: 500;
+    color: #3498db; /* Blue for assignee name */
 }
 
 /* Task assignee sidebar */
 .task-assignee-sidebar {
     width: 300px;
     background-color: #ffffff;
-    border-left: 1px solid #e0e0e0;
+    border-left: 1px solid #dcdcdc;
     padding: 20px;
-    box-shadow: -2px 0 5px rgba(0, 0, 0, 0.05);
+    box-shadow: -2px 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .sidebar-title {
-    font-size: 20px;
+    font-size: 22px;
     font-weight: 600;
+    color: #34495e;
     margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dcdcdc;
 }
 
 .member-list {
@@ -108,20 +162,9 @@
 }
 
 .member-card {
-    background-color: #f7f9fc;
+    background-color: #f9f9f9;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
     padding: 10px;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.back-to-board-button {
-    display: inline-block;
-    margin-top: 20px;
-    padding: 10px 15px;
-    background-color: #007bff;
-    color: white;
-    text-decoration: none;
-    border-radius: 6px;
-    text-align: center;
 }
