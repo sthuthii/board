@@ -8,6 +8,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    tasks_rel = db.relationship('Task', backref='board', lazy='dynamic', cascade="all, delete-orphan")
 
 class Board(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -15,6 +16,7 @@ class Board(db.Model):
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     whiteboard_data = db.Column(db.Text, nullable=True) 
+    tasks_rel = db.relationship('Task', backref='parent_board', lazy='dynamic', cascade="all, delete-orphan")
 
 class BoardMember(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -33,6 +35,7 @@ class Task(db.Model):
     assignee_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     status = db.Column(db.String(50), nullable=False, default='to_do')
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    pass
 
 class ChatMessage(db.Model):
     id = db.Column(db.Integer, primary_key=True)

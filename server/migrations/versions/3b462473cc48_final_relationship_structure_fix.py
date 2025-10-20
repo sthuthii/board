@@ -1,8 +1,8 @@
-"""Added invitation fields to BoardMember model
+"""Final relationship structure fix
 
-Revision ID: ebcfc68413f0
+Revision ID: 3b462473cc48
 Revises: 
-Create Date: 2025-10-13 15:38:26.737584
+Create Date: 2025-10-20 09:28:35.454825
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'ebcfc68413f0'
+revision = '3b462473cc48'
 down_revision = None
 branch_labels = None
 depends_on = None

@@ -51,24 +51,35 @@ const BoardView = ({ authToken, handleLogout }) => {
     // ... rest of the functions (handleCreateTask, handleTaskUpdate, onDragEnd, etc.)
 
     const handleCreateTask = async (e) => {
-        e.preventDefault();
-        if (!newTaskTitle.trim()) return;
+    e.preventDefault();
+    if (!newTaskTitle.trim()) return;
 
-        try {
-            await axios.post(`${API_URL}/boards/${boardId}/tasks`, {
-                title: newTaskTitle,
-            }, {
-                headers: { Authorization: `Bearer ${authToken}` },
-            });
+    // Save the current input value before resetting
+    const taskTitle = newTaskTitle;
+    setNewTaskTitle('');
+    setMessage('Creating task...');
 
-            setNewTaskTitle('');
-            fetchBoardData();
-            setMessage('Task created successfully!');
-        } catch (error) {
-            console.error('Error creating task:', error);
-            setMessage(error.response?.data?.msg || 'Failed to create task.');
-        }
-    };
+    try {
+        const response = await axios.post(`${API_URL}/boards/${boardId}/tasks`, {
+            title: taskTitle,
+        }, {
+            headers: { Authorization: `Bearer ${authToken}` },
+        });
+
+        // 1. CRITICAL: Use the returned task data to update the state.
+        // The backend returns the complete task object (with ID, status='to_do').
+        setTasks(prevTasks => [...prevTasks, response.data.task]);
+        
+        setMessage('Task created successfully!');
+
+    } catch (error) {
+        console.error('Error creating task:', error);
+        setMessage(error.response?.data?.msg || 'Failed to create task.');
+        
+        // If creation fails, force a fetch to reset any corrupted state
+        fetchBoardData(); 
+    }
+};
     
     // NOTE: All other functions (onDragEnd, handleTaskUpdate, etc.) must remain below the hooks.
 
