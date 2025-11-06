@@ -195,7 +195,7 @@ def create_app():
             invite_url = f"http://localhost:5173/accept-invite/{token}"
             msg = Message("Collabboard Invitation", recipients=[email])
             msg.body = f"Hello {user.username}, you have been invited to a board on Collabboard. Click here to accept: {invite_url}"
-            mail.send(msg)
+           # mail.send(msg)
             
             return jsonify({"msg": "Invitation sent successfully."}), 200
 

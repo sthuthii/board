@@ -5,6 +5,7 @@ import Dashboard from './components/Dashboard';
 import Whiteboard from './components/WhiteBoard';
 import BoardView from './components/BoardView';
 import TaskAssignee from './components/TaskAsignee';
+import AcceptInvite from './components/AcceptInvite';
 
 const App = () => {
     const [authToken, setAuthToken] = useState(localStorage.getItem('token'));
@@ -45,6 +46,11 @@ const App = () => {
             <Route 
     path="/boards/:boardId/members"
     element={<TaskAssignee authToken={authToken} />} />
+
+   <Route
+                path="/accept-invite/:token"
+                element={<AcceptInvite />} // <--- Now correctly defined
+            />
         </Routes>
         
     );
