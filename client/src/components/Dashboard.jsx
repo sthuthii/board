@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 import './Dashboard.css';
+import LogoutButton from './LogoutButton';
 
 const API_URL = 'http://127.0.0.1:5000/api';
 
@@ -88,7 +89,7 @@ const Dashboard = ({ authToken, handleLogout }) => {
                 <h1>Collabboard Dashboard</h1>
                 <button onClick={handleLogout}>Logout</button>
             </header>
-
+                 
             <main className="dashboard-content">
                 <form onSubmit={handleCreateBoard} className="board-form">
                     <input

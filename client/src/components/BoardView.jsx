@@ -113,7 +113,7 @@ const BoardView = ({ authToken, handleLogout }) => {
         setTasks(newTasks);
         
         try {
-            await axios.put(`${API_URL}/tasks/${movedTask.id}`, { status: newStatus }, {
+            await axios.put(`${API_URL}/task/${movedTask.id}`, { status: newStatus }, {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
             setMessage(`Task moved to ${newStatus}`);

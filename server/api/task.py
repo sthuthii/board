@@ -7,7 +7,7 @@ tasks_bp = Blueprint('task', __name__)
 
 # NOTE: Task creation is usually tied to a board ID
 # If registered with url_prefix='/api/tasks', this becomes POST /api/tasks/board/<id>
-@tasks_bp.route('/board/<int:board_id>', methods=['POST'])
+@tasks_bp.route('/boards/<int:board_id>', methods=['POST'])
 @jwt_required()
 def create_task(board_id):
     user_id = int(get_jwt_identity())

@@ -63,6 +63,15 @@ def create_app():
     def home():
         return jsonify({"message": "Collabboard Backend API is running!"}), 200
   
+    @app.before_request
+    def log_request_info():
+        from flask import request
+        print(f"--- Incoming Request ---")
+        print(f"Method: {request.method}")
+        print(f"URL: {request.url}")
+        print(f"Path: {request.path}")
+        print(f"------------------------")
+        
     return app
 
 if __name__ == "__main__":
