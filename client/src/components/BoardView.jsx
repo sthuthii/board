@@ -60,7 +60,7 @@ const BoardView = ({ authToken, handleLogout }) => {
     setMessage('Creating task...');
 
     try {
-        const response = await axios.post(`${API_URL}/boards/${boardId}/tasks`, {
+        const response = await axios.post(`${API_URL}/task/boards/${boardId}`, {
             title: taskTitle,
         }, {
             headers: { Authorization: `Bearer ${authToken}` },
