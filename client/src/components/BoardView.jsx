@@ -56,7 +56,7 @@ const BoardView = ({ authToken, handleLogout }) => {
 
     // Save the current input value before resetting
     const taskTitle = newTaskTitle;
-    setNewTaskTitle('');
+    setNewTaskTitle(''); 
     setMessage('Creating task...');
 
     try {

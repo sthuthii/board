@@ -1,9 +1,22 @@
 from flask_socketio import emit, join_room, leave_room
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import verify_jwt_in_request, jwt_required, get_jwt_identity
 from extensions import db, socketio
 from models import BoardMember, ChatMessage, User
 
 def register_socket_handlers(socketio):
+
+    @socketio.on('connect')
+    def handle_connect(auth):
+        # Extract token from the 'auth' object sent by React
+        token = auth.get('token') if auth else None
+        if not token: return False # Reject connection
+
+        try:
+            # Manually verify the JWT token
+            verify_jwt_in_request(locations=["headers"], optional=False)
+            print(f"User {get_jwt_identity()} connected")
+        except Exception:
+            return False # Reject connection
 
     @socketio.on('join')
     @jwt_required()
@@ -27,7 +40,8 @@ def register_socket_handlers(socketio):
     @socketio.on('chat_message')
     @jwt_required()
     def on_chat_message(data):
-        user_id = int(get_jwt_identity())
+        verify_jwt_in_request()
+        user_id = get_jwt_identity()
         room = data.get('board_id')
         message = data.get('message')
         

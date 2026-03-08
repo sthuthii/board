@@ -21,7 +21,7 @@ const TaskDetailModal = ({ task, boardMembers, authToken, onClose, onTaskUpdate,
                 assignee_id: assigneeId ? parseInt(assigneeId) : null,
             };
 
-            await axios.put(`${API_URL}/tasks/${task.id}`, updatedTask, {
+            await axios.put(`${API_URL}/task/${task.id}`, updatedTask, {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
 
@@ -38,7 +38,7 @@ const TaskDetailModal = ({ task, boardMembers, authToken, onClose, onTaskUpdate,
         if (!window.confirm(`Are you sure you want to delete the task: "${task.title}"?`)) return;
         
         try {
-            await axios.delete(`${API_URL}/tasks/${task.id}`, {
+            await axios.delete(`${API_URL}/task/${task.id}`, {
                 headers: { Authorization: `Bearer ${authToken}` },
             });
             

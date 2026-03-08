@@ -36,11 +36,14 @@ const Whiteboard = ({ authToken }) => {
             socketRef.current.emit('join', { board_id: parseInt(boardId) });
         });
         socketRef.current.on('whiteboard_update', (data) => {
-            const canvas = fabricCanvasRef.current;
-            canvas.loadFromJSON(data.canvasState, () => {
-                canvas.renderAll();
-            });
-        });
+        const canvas = fabricCanvasRef.current;
+        // Use a flag to prevent re-triggering 'object:added' when loading remote data
+        canvas.isRemoteUpdate = true; 
+        canvas.loadFromJSON(data.canvasState, () => {
+        canvas.renderAll();
+        canvas.isRemoteUpdate = false;
+    });
+});
         socketRef.current.on('disconnect', () => {
             console.log('Disconnected from WebSocket.');
         });
@@ -218,4 +221,4 @@ useEffect(() => {
 );
 };
 
-export default Whiteboard;
+export default Whiteboard; 
